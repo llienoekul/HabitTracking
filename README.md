@@ -1,16 +1,7 @@
-# React + Vite
+This Project is a "Full stack" web app to help me with my Habit Tracking. 
+It uses a React frontend and Node.js for the backend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+The basic premise of the app is to create a simple interface for saving my daily habit progress, and to 
+run data analytics on past days. 
 
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+It is also a practice project, especially to help me learn React.
