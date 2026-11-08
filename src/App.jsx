@@ -19,7 +19,7 @@ const habitTypeMap = {
 }
 
 const date = new Date()
-const m = date.getMonth() + 1
+let m = date.getMonth() + 1
 const y = date.getFullYear()
 let d = date.getDate()
 if (d < 10) { d = `0${d}` }
