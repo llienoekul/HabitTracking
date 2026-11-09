@@ -1,16 +1,9 @@
 import Habit from './Habit'
 import { useState, useEffect } from 'react'
-export default function Habits({ habitTypeMap }) {
-    const initValues = {
-        Steps: 0,
-        Pushups: 0,
-        Squats: 0,
-        Protein: 0,
-        MorningRoutine: false,
-        ReadChapter: false,
-        Bedtime: '23:59',
-        Sleep: false
-    }
+import { habitTypeMap, initValues, targets } from '../utils/config'
+import { checkHabit } from '../utils/utils'
+export default function Habits() {
+
     const date = new Date()
     const m = date.getMonth() + 1
     const y = date.getFullYear()
@@ -44,7 +37,6 @@ export default function Habits({ habitTypeMap }) {
                 throw new Error(`Response status: ${response.status}`);
             }
             const result = await response.json();
-            console.log(result);
             return result;
         } catch (error) {
             /* Here we can update the UI to handle the error
@@ -57,30 +49,13 @@ export default function Habits({ habitTypeMap }) {
         }
     }
 
-    function checkHabit(habitProgress, habitGoal, habitType) {
-        switch (habitType) {
-            case "timeCheck":
-                return Temporal.PlainTime.compare(habitProgress, habitGoal) < 1
-            default:
-                return habitProgress >= habitGoal
-        }
 
-    }
 
     function checkHabits(habitsProgress) {
-        const targets = {
-            Steps: 5000,
-            Pushups: 100,
-            Squats: 75,
-            Protein: 100,
-            MorningRoutine: 1,
-            ReadChapter: 1,
-            Bedtime: '23:00',
-            Sleep: 1
-        }
+
         let returnJSX = <>All goals were hit Today! See you tomorrow</>;
         for (const [habit, habitValue] of Object.entries(habitsProgress)) {
-            if (!checkHabit(habitValue, targets[habit], habitTypeMap[habit])) {
+            if (!checkHabit(habit, habitValue)) {
                 returnJSX = <>Still work to be done!</>;
             }
         }
@@ -105,7 +80,6 @@ export default function Habits({ habitTypeMap }) {
                 throw new Error(`Response status: ${response.status}`);
             }
             const result = await response.text();
-            console.log(result);
         } catch (error) {
             console.error(error.message);
         }

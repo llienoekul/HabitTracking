@@ -29,7 +29,7 @@ async function checkIfFileExists(filePath) {
         await fs.access(filePath);
         return true;
     } catch (error) {
-        console.log('File does not exist.');
+        console.log(filePath + ' File does not exist.');
         return false;
     }
 }
@@ -38,14 +38,18 @@ function getDaysInMonth(month, year) {
     return new Date(year, month, 0).getDate();
 }
 
+function padDate(date) {
+    return String(date).padStart(2, '0')
+}
 
 // This builds an empty json object for a new month
-async function buildMonthFile(filepath) {
-    
-    let monthData = {}
-    const days = getDaysInMonth(m, y);
+async function buildMonthFile(month, year, filepath) {
+    let monthData = []
+    console.log("month: " + month + ", Year: " + year)
+    const days = getDaysInMonth(month, year);
     for (let day = 1; day <= days; day++) {
-        monthData[day] = {}
+        let dayStr = padDate(day);
+        monthData[day] = { today: `${year}-${month}-${dayStr}` }
     }
     const a = await fs.writeFile(filepath, JSON.stringify(monthData));
 }
@@ -58,7 +62,7 @@ app.get('/date', async (req, res) => {
     const dIn = dateInput.substring(9, 11)
     const filepath = `../data/habits-${yIn}-${mIn}.json`
     const fileExists = await checkIfFileExists(filepath)
-    if (!fileExists) { 
+    if (!fileExists) {
         res.send('{}');
         return
     }
@@ -67,6 +71,71 @@ app.get('/date', async (req, res) => {
     delete data['today']
     res.send(data);
 
+});
+
+//Return habit habit over a passed in time period
+app.get('/data', async (req, res) => {
+    const dateStart = req.query.dateStart
+    const dateEnd = req.query.dateEnd
+    let yStart = Number(dateStart.substring(0, 4))
+    let mStart = Number(dateStart.substring(5, 7))
+    let dStart = Number(dateStart.substring(9, 11))
+    let yEnd = Number(dateEnd.substring(0, 4))
+    let mEnd = Number(dateEnd.substring(5, 7))
+    let dEnd = Number(dateEnd.substring(9, 11))
+
+    let data = []
+    if (yStart === yEnd && mStart === mEnd) {
+        let filepath = `../data/habits-${yStart}-${padDate(mStart)}.json`
+        let fileExists = await checkIfFileExists(filepath)
+        if (!fileExists) {
+            res.send('{}');
+            return
+        }
+        let monthData = await fs.readFile(filepath, { encoding: 'utf8' }).then((response) => JSON.parse(response)).catch((e) => console.error(e));
+        data.push(...monthData.slice(dStart, dEnd + 1))
+        console.log('1 month data: ', data)
+    }
+    else {
+        let filepath = `../data/habits-${yStart}-${padDate(mStart)}.json`
+        let fileExists = await checkIfFileExists(filepath)
+        if (!fileExists) {
+            res.send('{}');
+            return
+        }
+        let monthData = await fs.readFile(filepath, { encoding: 'utf8' }).then((response) => JSON.parse(response)).catch((e) => console.error(e));
+        data.push(...monthData.slice(dStart, Number(getDaysInMonth(mStart, yStart)) + 1))
+        console.log('month 1: ' + data)
+
+        let y = yStart
+        let m = mStart + 1
+        while (y < yEnd || m < mEnd) {
+            console.log('while')
+            filepath = `../data/habits-${y}-${padDate(m)}.json`
+            fileExists = await checkIfFileExists(filepath)
+            if (!fileExists) {
+                res.send('{}');
+                return
+            }
+            monthData = await fs.readFile(filepath, { encoding: 'utf8' }).then((response) => JSON.parse(response)).catch((e) => console.error(e));
+            data.push(...monthData.slice(1, (monthData.length)))
+            m++
+            if (m > 12) {
+                m = 1
+                y++
+            }
+        }
+        filepath = `../data/habits-${yEnd}-${mEnd}.json`
+        fileExists = await checkIfFileExists(filepath)
+        if (!fileExists) {
+            res.send('{}');
+            return
+        }
+        monthData = await fs.readFile(filepath, { encoding: 'utf8' }).then((response) => JSON.parse(response)).catch((e) => console.error(e));
+        data.push(...monthData.slice(1, dEnd + 1))
+        console.log('final: ' + data)
+    }
+    res.send(data);
 });
 
 app.post('/', async (req, res) => {
@@ -82,8 +151,8 @@ app.post('/', async (req, res) => {
     habitData['ReadChapter'] = 'ReadChapter' in habitData
     habitData['Sleep'] = 'Sleep' in habitData
     const fileExists = await checkIfFileExists(filepath)
-    
-    if (!fileExists) { await buildMonthFile(filepath) }
+
+    if (!fileExists) { await buildMonthFile(mIn, yIn, filepath) }
 
     let monthData = await fs.readFile(filepath, { encoding: 'utf8' }).then((response) => JSON.parse(response)).catch((e) => console.error(e));
     monthData[dIn] = habitData;
