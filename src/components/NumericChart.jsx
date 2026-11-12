@@ -16,12 +16,13 @@ export default function NumericChart({ data, habit }) {
                 y={y}
                 width={width}
                 height={height}
-                fill={checkHabit(habit, payload.value) ? '#0D9488' : '#F59E0B'}
+                fill={checkHabit(habit, String(payload.value)) ? '#0D9488' : '#F59E0B'}
             />
         );
     };
     return (
         <>
+            <h2>{habit}</h2>
             <BarChart style={{ width: '100%', aspectRatio: 1.618, maxWidth: 600 }} responsive data={data}>
                 <Bar dataKey="value" fill='blue' shape={colorBar} />
                 <ReferenceLine

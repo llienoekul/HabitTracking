@@ -22,6 +22,16 @@ const corsOptions = {
 
 app.use(express.json())
 app.use(cors(corsOptions))
+// check if an entry is empty
+function isPlainObjectEmpty(obj) {
+    return (
+        obj !== undefined &&
+        obj !== null &&
+        typeof obj === 'object' &&
+        obj.constructor === Object &&
+        Object.keys(obj).length === 0
+    );
+}
 
 async function checkIfFileExists(filePath) {
     try {
@@ -59,7 +69,7 @@ app.get('/date', async (req, res) => {
     //YYYY-MM-DD
     const yIn = dateInput.substring(0, 4)
     const mIn = dateInput.substring(5, 7)
-    const dIn = dateInput.substring(9, 11)
+    const dIn = dateInput.substring(8, 10)
     const filepath = `../data/habits-${yIn}-${mIn}.json`
     const fileExists = await checkIfFileExists(filepath)
     if (!fileExists) {
@@ -67,8 +77,10 @@ app.get('/date', async (req, res) => {
         return
     }
     let monthData = await fs.readFile(filepath, { encoding: 'utf8' }).then((response) => JSON.parse(response)).catch((e) => console.error(e));
-    let data = monthData[dIn];
-    delete data['today']
+    let data = monthData[Number(dIn)];
+    if (!isPlainObjectEmpty(data)) {
+        delete data['today']
+    }
     res.send(data);
 
 });
@@ -79,10 +91,10 @@ app.get('/data', async (req, res) => {
     const dateEnd = req.query.dateEnd
     let yStart = Number(dateStart.substring(0, 4))
     let mStart = Number(dateStart.substring(5, 7))
-    let dStart = Number(dateStart.substring(9, 11))
+    let dStart = Number(dateStart.substring(8, 10))
     let yEnd = Number(dateEnd.substring(0, 4))
     let mEnd = Number(dateEnd.substring(5, 7))
-    let dEnd = Number(dateEnd.substring(9, 11))
+    let dEnd = Number(dateEnd.substring(8, 10))
 
     let data = []
     if (yStart === yEnd && mStart === mEnd) {
@@ -94,7 +106,6 @@ app.get('/data', async (req, res) => {
         }
         let monthData = await fs.readFile(filepath, { encoding: 'utf8' }).then((response) => JSON.parse(response)).catch((e) => console.error(e));
         data.push(...monthData.slice(dStart, dEnd + 1))
-        console.log('1 month data: ', data)
     }
     else {
         let filepath = `../data/habits-${yStart}-${padDate(mStart)}.json`
@@ -143,7 +154,7 @@ app.post('/', async (req, res) => {
     const saveDate = habitData['saveDate']
     const yIn = saveDate.substring(0, 4)
     const mIn = saveDate.substring(5, 7)
-    const dIn = saveDate.substring(9, 11)
+    const dIn = saveDate.substring(8, 10)
     const filepath = `../data/habits-${yIn}-${mIn}.json`
 
     delete habitData['saveDate']
@@ -155,7 +166,7 @@ app.post('/', async (req, res) => {
     if (!fileExists) { await buildMonthFile(mIn, yIn, filepath) }
 
     let monthData = await fs.readFile(filepath, { encoding: 'utf8' }).then((response) => JSON.parse(response)).catch((e) => console.error(e));
-    monthData[dIn] = habitData;
+    monthData[Number(dIn)] = habitData;
     const a = await fs.writeFile(filepath, JSON.stringify(monthData, null, 2));
 });
 
